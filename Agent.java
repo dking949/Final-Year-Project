@@ -33,7 +33,7 @@ public class Agent {
     int[] newstate;
     int action;
     double reward;
-    int iterations = 100;
+    int iterations = 5000;
     int movesMade = 0;
 
     File results = new File("C:\\Users\\I320248\\Documents\\4th Year Docs\\Final Year Project\\results.txt");

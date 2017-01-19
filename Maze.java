@@ -11,7 +11,20 @@ public class Maze{
     final int W = 3;
 
     // dimension: { x, y, actions }
-    final int[] mazeDims = { 5, 5, 4 };
+    int[] mazeDims = new int[3];
+    int[] mazeExit = new int[2];
+    int northBorder = 0;
+    int eastBorder;
+    int southBorder;
+    int westBorder = 0;
+
+
+    public Maze(int[] dims, int[] exit){
+        this.mazeDims = dims;
+        this.mazeExit = exit;
+        this.eastBorder = dims[0]-1;
+        this.southBorder = dims[1]-1;
+    }
 
     public int[] getDimension() {
 
@@ -39,25 +52,23 @@ public class Maze{
     public boolean validAction( int[] state, int action ) {
 
         // West border
-        if( state[0] == 0 && action == W )
+        if( state[0] == westBorder && action == W )
             return false;
             // East border
-        else if( state[0] == 4 && action == E )
+        else if( state[0] == eastBorder && action == E )
             return false;
             // North border
-        else if( state[1] == 0 && action == N )
+        else if( state[1] == northBorder && action == N )
             return false;
             // South border
-        else if( state[1] == 4 && action == S )
+        else if( state[1] == southBorder && action == S )
             return false;
         else return true;
     }
 
     public boolean endState( int[] state ) {
-
-        // Absorbing state in south-east corner.
         //agent has found exit to maze
-        if( state[0] == 3 && state[1] == 3 ) {
+        if( state[0] == mazeExit[0] && state[1] == mazeExit[1] ) {
             return true;
         }
         else return false;
@@ -67,25 +78,25 @@ public class Maze{
     public double getReward( int[] state, int action ) {
 
         // Square in the west of the goal state.
-        if( state[0] == 2 && state[1] == 3 ) {
+        if( state[0] == mazeExit[0]-1 && state[1] == mazeExit[1] ) {
             if ( action == E )
                 return 1;
             else return 0;
         }
         // Square in the south of the goal state.
-        if( state[0] == 4 && state[1] == 3 ) {
+        if( state[0] == mazeExit[0]+1 && state[1] == mazeExit[1] ) {
             if ( action == W )
                 return 1;
             else return 0;
         }
         // Square in the south of the goal state.
-        if( state[0] == 3 && state[1] == 2 ) {
+        if( state[0] == mazeExit[0] && state[1] == mazeExit[1]-1 ) {
             if ( action == S )
                 return 1;
             else return 0;
         }
         // Square in the south of the goal state.
-        if( state[0] == 3 && state[1] == 4 ) {
+        if( state[0] == mazeExit[0] && state[1] == mazeExit[1]+1) {
             if ( action == N )
                 return 1;
             else return 0;

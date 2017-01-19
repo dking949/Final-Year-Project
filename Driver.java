@@ -8,7 +8,10 @@ public class Driver {
 
     public static void main(String args[]) throws IOException{
 
-        Maze rlMaze = new Maze();
+        int[] dimensions = new int[]{10,10,4};
+        int[] mazeExitPoint = new int[]{8,8};
+
+        Maze rlMaze = new Maze(dimensions, mazeExitPoint);
         Agent rlAgent = new Agent(rlMaze);
 
         rlAgent.runTrial();
