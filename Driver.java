@@ -9,10 +9,13 @@ public class Driver {
     public static void main(String args[]) throws IOException{
 
         int[] dimensions = new int[]{10,10,4};
-        int[] mazeExitPoint = new int[]{8,8};
+        int[] mazeExitPoint = new int[]{9,9};
+        //double[] reward1 = new double[]{5,5,0.05};       //xPos,yPos,rewardVal
 
         Maze rlMaze = new Maze(dimensions, mazeExitPoint);
         Agent rlAgent = new Agent(rlMaze);
+
+       //rlMaze.addReward(reward1);
 
         rlAgent.runTrial();
     }

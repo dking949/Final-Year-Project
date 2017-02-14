@@ -25,15 +25,17 @@ public class Agent {
     double epsilon;
     double temp;
 
-    double alpha;
-    double gamma;
+    double alpha;     //learning rate
+    double gamma;     //discount factor
+    double potentialFunc;
+    double newPotentialFunc;
 
     int[] dimSize;
     int[] state;
     int[] newstate;
     int action;
     double reward;
-    int iterations = 5000;
+    int iterations = 100;
     int movesMade = 0;
 
     File results = new File("C:\\Users\\I320248\\Documents\\4th Year Docs\\Final Year Project\\results.txt");
@@ -61,7 +63,7 @@ public class Agent {
         temp = 1;
 
         alpha = 0.9;
-        gamma = 0.1;
+        gamma = 1;
 
         System.out.println( "RLearner initialised" );
 
@@ -75,51 +77,91 @@ public class Agent {
 
         FileWriter fstream = new FileWriter(results);
         BufferedWriter out = new BufferedWriter(fstream);
-
+        out.write("Moves" + "\t" + "Total Reward" + "\n");
         for( int i = 0 ; i < iterations ; i++ ) {
-            //if( ! running ) break;
 
-            int res = runEpoch();
-            out.write("Moves: " + String.valueOf(res) + "\n");
+            double[] res = runEpoch();
+            out.write(String.valueOf((int)res[0]) + "\t" + String.valueOf(res[1]) + "\n");
         }
 
         out.close();
     }
 
     // execute one epoch
-    public int runEpoch() {
+    public double[] runEpoch() {
 
         // Reset state to start position defined by the world.
-        //state = thisWorld.resetState();
-        //TEMP SOLUTION
         state = new int[]{0, 0};
+        potentialFunc = 0; newPotentialFunc = 0;
         movesMade = 0;
         //Q_LEARNING
 
         double this_Q;
         double max_Q;
         double new_Q;
-
+        double [] toReturn = new double[2];
+        double cumulativeReward = 0;
+        int oldManhattenDist, newManhattenDist;
+        double finalPotentialFunctionVal = 0;
 
         while( !thisWorld.endState(state) ) {
 
+            //reset finalPotFuncVal
+            finalPotentialFunctionVal = 0;
+
             action = selectAction( state );
+            //System.out.println(action);
             newstate = thisWorld.getNextState( state, action );
-            reward = thisWorld.getReward(state, action);
+            //reward is got by moving to new state
+            reward = thisWorld.getReward(newstate);
+
+            oldManhattenDist = thisWorld.calcManhatten(state);
+            newManhattenDist = thisWorld.calcManhatten(newstate);
+
+            if(newManhattenDist < oldManhattenDist){
+                //Agent moved toward goal
+                newPotentialFunc += 1;
+            }
+            else {
+                //Agent moved away from goal
+                newPotentialFunc -= 2;
+            }
+
+            System.out.println("NewPot: " + newPotentialFunc );
+            System.out.println("OldPot " + potentialFunc);
 
             this_Q = policy.getQValue( state, action );
             max_Q = policy.getMaxQValue( newstate );
 
             // Calculate new Value for Q **FORMULA**
-            new_Q = this_Q + alpha * ( reward + gamma * max_Q - this_Q );
+            if(newManhattenDist>= 0){
+                new_Q = this_Q + alpha * ( reward + gamma*newPotentialFunc - potentialFunc + gamma * max_Q - this_Q);
+                finalPotentialFunctionVal = gamma*newPotentialFunc - potentialFunc;
+            }
+            //need else for when s = s0 (goal state)
+            else{
+                new_Q = this_Q + alpha * ( reward + gamma * max_Q - this_Q);
+            }
+
             policy.setQValue( state, action, new_Q );
 
             // Set state to the new state.
             state = newstate;
+            potentialFunc = newPotentialFunc;
             movesMade++;
 
+            if(newManhattenDist>= 0){
+                cumulativeReward += reward + finalPotentialFunctionVal;
+            }
+            else {
+                cumulativeReward += reward;
+            }
+
         }
-        return movesMade;
+        toReturn[0] = movesMade;
+        toReturn[1] = cumulativeReward;
+
+        return toReturn;
     }
 
     private int selectAction( int[] state ) {
@@ -175,9 +217,6 @@ public class Agent {
             selectedAction = (int) (Math.random() * qValues.length);
             // System.out.println( "Invalid action, new one:" + selectedAction);
         }
-
-
-
         return selectedAction;
     }
 
