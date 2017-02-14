@@ -1,2 +1,2 @@
 # Final-Year-Project
-Advanced Reinforcement Learning Methods with a focus on Transfer Learning
+Empirical Analysis of Reward Shaping and its effects on Agent Performance in a Reinforcement Learning Environment
