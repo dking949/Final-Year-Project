@@ -39,6 +39,7 @@ public class Agent {
     int movesMade = 0;
 
     File results = new File("C:\\Users\\I320248\\Documents\\4th Year Docs\\Final Year Project\\results.txt");
+    File results2 = new File("C:\\Users\\I320248\\Documents\\4th Year Docs\\Final Year Project\\results2.txt");
 
 
     int epochs;
@@ -68,6 +69,7 @@ public class Agent {
         System.out.println( "RLearner initialised" );
 
         results.getParentFile().mkdirs();
+        results2.getParentFile().mkdirs();
 
     }
 
@@ -78,26 +80,26 @@ public class Agent {
         FileWriter fstream = new FileWriter(results);
         BufferedWriter out = new BufferedWriter(fstream);
         out.write("Moves" + "\t" + "Total Reward" + "\n");
+
+        FileWriter fstream2 = new FileWriter(results2);
+        BufferedWriter out2 = new BufferedWriter(fstream2);
+        out2.write("Moves" + "\t" + "Total Reward" + "\n");
+
         for( int i = 0 ; i < iterations ; i++ ) {
 
             if (i%20==0) epsilon = epsilon/2;   //decay the exploration
-            //double[] res = runWithPotential();
-            double[] res2 = runWithNoPotential();
-            //out.write(String.valueOf((int)res[0]) + "\t" + String.valueOf(res[1]) + "\n");
-            out.write(/*String.valueOf((int)res[0]) + "\t" + String.valueOf(res[1]) + "\n" + */String.valueOf((int)res2[0]) + "\n");
+            double[] res = runWithPotential();
+            double[] res2 = runWithoutPotential();
+            out.write(String.valueOf((int)res[0]) + "\t" + String.valueOf(res[1]) + "\n");
+            out2.write(String.valueOf((int)res2[0]) + "\t" + String.valueOf(res2[1]) + "\n");
         }
 
         out.close();
+        out2.close();
     }
 
     // execute one epoch
     public double[] runWithPotential() {
-
-        System.out.println("New Iteration\n" +
-                "************\n" +
-                "************\n" +
-                "*************\n" +
-                "*************\n");
 
         // Reset state to start position defined by the world.
         state = new int[]{0, 0};
@@ -114,8 +116,8 @@ public class Agent {
         double ShapingReward = 0;
 
         while( !thisWorld.endState(state) ) {
-            System.out.println("----------------");
-            System.out.println("Current State: " + state[0] + "," + state[1]);
+            //System.out.println("----------------");
+            //System.out.println("Current State: " + state[0] + "," + state[1]);
 
             //reset ShapingReward
             ShapingReward = 0;
@@ -174,12 +176,11 @@ public class Agent {
         return toReturn;
     }
 
-    public double[] runWithNoPotential(){
+    public double[] runWithoutPotential(){
 
         //Reset state to start point
         state = new int[]{0, 0};
         movesMade = 0;
-        //Q_LEARNING
 
         double this_Q;
         double max_Q;
@@ -194,7 +195,7 @@ public class Agent {
 
             if(!thisWorld.validAction(state, action)){
                 //Agent has hit a wall
-                newstate = state;   //newstate = currentstate
+                newstate = state;
             }
             else{
                 newstate = thisWorld.getNextState( state, action );
@@ -240,13 +241,10 @@ public class Agent {
         //Explore
         if ( Math.random() < epsilon ) {
             selectedAction = -1;
-            System.out.println("Random Choice!");
             random = true;
         }
         else {
-
             for( int action = 0 ; action < qValues.length ; action++ ) {
-                //System.out.println("Qvalue[" + action + "]: " + qValues[action]);
                 if( qValues[action] > maxQ ) {
                     selectedAction = action;
                     maxQ = qValues[action];
@@ -279,7 +277,6 @@ public class Agent {
             // System.out.println( "Invalid action, new one:" + selectedAction);
         }*/
 
-        //System.out.println("SelectedAction = " + selectedAction);
         return selectedAction;
     }
 
