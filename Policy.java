@@ -36,14 +36,13 @@ public class Policy {
         int actualdim = 0;
         int state[] = new int[dimSize.length - 1];
 
-        System.out.println( "States: " + states );
         for( int j = 0 ; j < states ; j++ ) {
 
             qValues = (double[]) myQValues( state );
 
             for( i = 0 ; i < actions ; i++ ) {
-                // System.out.print( i );
-                Array.setDouble( qValues, i, ( initValue )); //+ 0.0000000000000000001 * Math.random() ) );
+                //set all Q Values = 0
+                Array.setDouble( qValues, i, ( initValue ));
             }
 
             state = getNextState( state );

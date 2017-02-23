@@ -107,35 +107,10 @@ public class Maze{
                 }
                 return r.getRewardVal();
             }
-            return 0;
+            return -1;
         }
-        else return 0;
+        else return -1;
 
-        // Square in the west of the goal state.
-        /*if( state[0] == mazeExit[0]-1 && state[1] == mazeExit[1] ) {
-            if ( action == E )
-                return 1;
-            else return 0;
-        }
-        // Square in the south of the goal state.
-        if( state[0] == mazeExit[0]+1 && state[1] == mazeExit[1] ) {
-            if ( action == W )
-                return 1;
-            else return 0;
-        }
-        // Square in the south of the goal state.
-        if( state[0] == mazeExit[0] && state[1] == mazeExit[1]-1 ) {
-            if ( action == S )
-                return 1;
-            else return 0;
-        }
-        // Square in the south of the goal state.
-        if( state[0] == mazeExit[0] && state[1] == mazeExit[1]+1) {
-            if ( action == N )
-                return 1;
-            else return 0;
-        }
-        else return 0;*/
     }
 
 
