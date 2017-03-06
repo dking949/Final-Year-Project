@@ -14,7 +14,6 @@ public class Policy {
     int states, actions;
 
     Policy( int[] dimSize ) {
-
         this.dimSize = dimSize;
 
         // Create n-dimensional array with size given in dimSize array.
@@ -31,7 +30,6 @@ public class Policy {
 
 
     public void initValues( double initValue ) {
-
         int i;
         int actualdim = 0;
         int state[] = new int[dimSize.length - 1];
@@ -50,7 +48,6 @@ public class Policy {
 
     }
     private int[] getNextState( int[] state ) {
-
         int i;
         int actualdim = 0;
 
@@ -72,7 +69,6 @@ public class Policy {
     }
 
     private double[] myQValues( int[] state ) {
-
         int i;
         Object curTable = qValuesTable;
 
@@ -86,7 +82,6 @@ public class Policy {
     }
 
     public double[] getQValuesAt( int[] state ) {
-
         int i;
         Object curTable = qValuesTable;
         double[] returnValues;
@@ -105,15 +100,12 @@ public class Policy {
 
 
     public void setQValue( int[] state, int action, double newQValue ) {
-
         qValues = myQValues( state );
         Array.setDouble( qValues, action, newQValue );
     }
 
     public double getMaxQValue( int[] state ) {
-
         double maxQ = -Double.MAX_VALUE;
-
         qValues = myQValues( state );
 
         for( int action = 0 ; action < qValues.length ; action++ ) {
@@ -125,71 +117,9 @@ public class Policy {
     }
 
     public double getQValue( int[] state, int action ) {
-
         double qValue = 0;
-
         qValues = myQValues( state );
         qValue = qValues[action];
-
         return qValue;
     }
-
-    public int getBestAction( int[] state ) {
-
-        double maxQ = -Double.MAX_VALUE;
-        int selectedAction = -1;
-        int[] doubleValues = new int[qValues.length];
-        int maxDV = 0;
-
-        qValues = myQValues( state );
-
-        for( int action = 0 ; action < qValues.length ; action++ ) {
-            //System.out.println( "STATE: [" + state[0] + "," + state[1] + "]" );
-            //System.out.println( "action:qValue, maxQ " + action + ":" + qValues[action] + "," + maxQ );
-
-            if( qValues[action] > maxQ ) {
-                selectedAction = action;
-                maxQ = qValues[action];
-                maxDV = 0;
-                doubleValues[maxDV] = selectedAction;
-            }
-            else if( qValues[action] == maxQ ) {
-                maxDV++;
-                doubleValues[maxDV] = action;
-            }
-        }
-
-        if( maxDV > 0 ) {
-            //System.out.println( "DOUBLE values, random selection, maxdv =" + maxDV );
-            int randomIndex = (int) ( Math.random() * ( maxDV + 1 ) );
-            selectedAction = doubleValues[ randomIndex ];
-        }
-
-
-        if( selectedAction == -1 ) {
-            //System.out.println("RANDOM Choice !" );
-            selectedAction = (int) ( Math.random() * qValues.length );
-        }
-
-        return selectedAction;
-
-    }
-
-    /*public double getBestAction( int[]state, int bestAction ) {
-    private double bestAction( int[] state, int bestAction ) {
-
-	double maxQ = 0;
-	bestAction = -1;
-
-	qValues = getQValuesAt( state );
-
-	for( int action = 0 ; action < qValues.length ; action++ ) {
-	    if( qValues[action] > maxQ ) {
-		bestAction = action;
-		maxQ = qValues[action];
-	    }
-	}
-	return maxQ;
-    */
-
 }

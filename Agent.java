@@ -13,29 +13,19 @@ public class Agent {
     Maze thisWorld;
     Policy policy;
 
-//    // Learning types
-//    public static final int Q_LEARNING = 1;
-//
-//    // Action selection types
-//    public static final int E_GREEDY = 1;
-
-    //int learningMethod;
-    int actionSelection;
-
     double epsilon;
-
-    double alpha;     //learning rate
-    double gamma;     //discount factor
-    double potentialFunc;
-    double newPotentialFunc;
-    double tao;       //The scaling factor used to scale potential function
+    double alpha;               //learning rate
+    double gamma;               //discount factor
+    double potentialFunc;       //potential value for moving to current state
+    double newPotentialFunc;    //potential value for moving to new state
+    double tau;                 //The scaling factor used to scale potential function
 
     int[] dimSize;
     int[] state;
     int[] newstate;
     int action;
     double reward;
-    int iterations = 500;
+    int iterations = 1000;
     int movesMade = 0;
 
     File results = new File("C:\\Users\\I320248\\Documents\\4th Year Docs\\Final Year Project\\results.txt");
@@ -47,13 +37,8 @@ public class Agent {
     boolean random = false;
 
     public Agent(Maze world) {
-        // Getting the world from the invoking method.
         thisWorld = world;
-
-        // Get dimensions of the world.
         dimSize = thisWorld.getDimension();
-
-        // Creating new policy with dimensions to suit the world.
         policy = new Policy( dimSize );
 
         // Initializing the policy with the initial values defined by the world.
@@ -61,10 +46,9 @@ public class Agent {
 
         // set default values
         epsilon = 0.1;
-
         alpha = 0.9;
         gamma = 1;
-        tao = 1;
+        tau = 1;
 
         System.out.println( "RLearner initialised" );
 
@@ -75,37 +59,43 @@ public class Agent {
 
     // execute one trial
     public void runTrial() throws IOException{
-        //System.out.println( "Learning! \n");
+        System.out.println( "Learning! \n");
 
         FileWriter fstream = new FileWriter(results);
         BufferedWriter out = new BufferedWriter(fstream);
-        out.write("Moves" + "\t" + "Total Reward" + "\n");
+        out.write("EpisodeNum" + "\t" + "Moves" + "\t" + "Total Reward" + "\n");
 
         FileWriter fstream2 = new FileWriter(results2);
         BufferedWriter out2 = new BufferedWriter(fstream2);
-        out2.write("Moves" + "\t" + "Total Reward" + "\n");
+        out2.write("EpisodeNum" + "\t" + "Moves" + "\t" + "Total Reward" + "\n");
 
-        for( int i = 0 ; i < iterations ; i++ ) {
+        for( int i = 1 ; i <= iterations ; i++ ) {
 
-            if (i%20==0) epsilon = epsilon/2;   //decay the exploration
+            //if (i%100==0) epsilon = epsilon/2;   //decay the exploration
             double[] res = runWithPotential();
+            out.write(String.valueOf(i) + "\t" + String.valueOf((int)res[0]) + "\t" + String.valueOf(res[1]) + "\n");
+
+        }
+        newPolicy();
+        setEpsilon(0.1);
+        for(int j = 1; j <= iterations; j++){
+            //Reset The Q values for 2nd trial
+
+            //if (j%100==0) epsilon = epsilon/2;   //decay the exploration
             double[] res2 = runWithoutPotential();
-            out.write(String.valueOf((int)res[0]) + "\t" + String.valueOf(res[1]) + "\n");
-            out2.write(String.valueOf((int)res2[0]) + "\t" + String.valueOf(res2[1]) + "\n");
+            out2.write(String.valueOf(j) + "\t" + String.valueOf((int)res2[0]) + "\t" + String.valueOf(res2[1]) + "\n");
         }
 
         out.close();
         out2.close();
     }
 
-    // execute one epoch
     public double[] runWithPotential() {
 
-        // Reset state to start position defined by the world.
+        // Reset state to start position
         state = new int[]{0, 0};
         potentialFunc = 0; newPotentialFunc = 0;
         movesMade = 0;
-        //Q_LEARNING
 
         double this_Q;
         double max_Q;
@@ -113,11 +103,9 @@ public class Agent {
         double [] toReturn = new double[2];
         double cumulativeReward = 0;
         int oldManhattenDist, newManhattenDist;
-        double ShapingReward = 0;
+        double ShapingReward;
 
         while( !thisWorld.endState(state) ) {
-            //System.out.println("----------------");
-            //System.out.println("Current State: " + state[0] + "," + state[1]);
 
             //reset ShapingReward
             ShapingReward = 0;
@@ -126,7 +114,7 @@ public class Agent {
             //if action chosen is not valid
             if(!thisWorld.validAction(state, action)){
                 //Agent has hit a wall
-                newstate = state;   //newstate = currentstate
+                newstate = state;
             }
             else{
                 newstate = thisWorld.getNextState( state, action );
@@ -152,10 +140,10 @@ public class Agent {
             // Q LEARNING FORMULA HERE
             if(newManhattenDist>= 0){
                 ShapingReward = gamma*newPotentialFunc - potentialFunc;
-                new_Q = this_Q + alpha * ( reward + tao*ShapingReward + gamma * max_Q - this_Q);
+                new_Q = this_Q + alpha * ( reward + tau*ShapingReward + gamma * max_Q - this_Q);
 
             }
-            //need else for when s = s0 (goal state)
+            //need else for when s' = s0 (goal state)
             else{
                 new_Q = this_Q + alpha * ( reward + gamma * max_Q - this_Q);
             }
@@ -190,11 +178,9 @@ public class Agent {
 
 
         while( !thisWorld.endState(state) ) {
-
             action = selectAction( state );
 
             if(!thisWorld.validAction(state, action)){
-                //Agent has hit a wall
                 newstate = state;
             }
             else{
@@ -217,26 +203,21 @@ public class Agent {
         }
         toReturn[0] = movesMade;
         toReturn[1] = totalReward;
-
-
         return toReturn;
     }
 
 
 
     private int selectAction( int[] state ) {
-
         double[] qValues = policy.getQValuesAt( state );
         int selectedAction = -1;
-
 
         //E_GREEDY
 
         random = false;
-        double maxQ = -Double.MAX_VALUE;
+        double maxQ = -Double.MAX_VALUE;    //initially set max = lowest possible double value
         int[] doubleValues = new int[qValues.length];
         int maxDV = 0;
-
 
         //Explore
         if ( Math.random() < epsilon ) {
@@ -251,107 +232,55 @@ public class Agent {
                     maxDV = 0;
                     doubleValues[maxDV] = selectedAction;
                 }
+                //more than one Q values are the same
                 else if( qValues[action] == maxQ ) {
                     maxDV++;
                     doubleValues[maxDV] = action;
                 }
             }
-
+            //Choose randomly out of the equal Q values
             if( maxDV > 0 ) {
                 int randomIndex = (int) ( Math.random() * ( maxDV + 1 ) );
-                selectedAction = doubleValues[ randomIndex ];
+                selectedAction = doubleValues[randomIndex];
             }
         }
 
-        // Select random action if all qValues == 0 or exploring.
         if ( selectedAction == -1 ) {
-
-            // System.out.println( "Exploring ..." );
             selectedAction = (int) (Math.random() * qValues.length);
         }
-
-        // Choose new action if not valid.
-        /*while( ! thisWorld.validAction(state, selectedAction) ) {
-
-            selectedAction = (int) (Math.random() * qValues.length);
-            // System.out.println( "Invalid action, new one:" + selectedAction);
-        }*/
-
         return selectedAction;
     }
 
-    /* private double getMaxQValue( int[] state, int action ) {
-
-	double maxQ = 0;
-
-	double[] qValues = policy.getQValuesAt( state );
-
-	for( action = 0 ; action < qValues.length ; action++ ) {
-	    if( qValues[action] > maxQ ) {
-		maxQ = qValues[action];
-	    }
-	}
-	return maxQ;
-    }
-    */
-
-
     public Policy getPolicy() {
-
         return policy;
     }
 
     public void setAlpha( double a ) {
-
         if( a >= 0 && a < 1 )
             alpha = a;
     }
 
     public void setGamma( double g ) {
-
         if( g > 0 && g < 1 )
             gamma = g;
     }
 
     public double getGamma() {
-
         return gamma;
     }
 
     public void setEpsilon( double e ) {
-
         if( e > 0 && e < 1 )
             epsilon = e;
     }
-
     public double getEpsilon() {
-
         return epsilon;
     }
 
-    public void setEpisodes( int e ) {
-
-        if( e > 0 )
-            epochs = e;
-    }
-
-    public int getEpisodes() {
-
-        return epochs;
-    }
-
-    public int getActionSelection() {
-
-        return actionSelection;
-    }
-
-
-    //AK: let us clear the policy
-    public Policy newPolicy() {
-        policy = new Policy( dimSize );
-        // Initializing the policy with the initial values defined by the world.
-        policy.initValues( thisWorld.getInitValues() );
-        return policy;
+    //clear the policy
+    public void newPolicy() {
+        this.policy = new Policy( dimSize );
+        this.policy.initValues( thisWorld.getInitValues() );
     }
 }
 

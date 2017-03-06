@@ -113,14 +113,6 @@ public class Maze{
 
     }
 
-
-    public void resetState( int[] state ) {
-
-        // reposition to 0,0
-        for( int j = 0 ; j < 2 ; j++ )
-            state[j] = (int) ( Math.random() * mazeDims[j] );
-    }
-
     public double getInitValues() {
         return 0;
     }
