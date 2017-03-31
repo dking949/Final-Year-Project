@@ -9,7 +9,7 @@ public class Policy {
 
     // Array qValuesTable;
     int[] dimSize;
-    double[] qValues;
+    double[] qValues;       //double array to hold all q values of 1 given state
     private Object qValuesTable;
     int states, actions;
 

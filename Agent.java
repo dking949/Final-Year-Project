@@ -1,12 +1,9 @@
 package FinalYearProject;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Vector;
 import java.lang.*;
 import java.lang.reflect.*;
-import java.io.File;
 
 public class Agent {
 
@@ -25,14 +22,13 @@ public class Agent {
     int[] newstate;
     int action;
     double reward;
-    int iterations = 1000;
+    int iterations = 150;
     int movesMade = 0;
+
 
     File results = new File("C:\\Users\\I320248\\Documents\\4th Year Docs\\Final Year Project\\results.txt");
     File results2 = new File("C:\\Users\\I320248\\Documents\\4th Year Docs\\Final Year Project\\results2.txt");
-
-
-    int epochs;
+    File results3 = new File("C:\\Users\\I320248\\Documents\\4th Year Docs\\Final Year Project\\results3.txt");
 
     boolean random = false;
 
@@ -46,7 +42,7 @@ public class Agent {
 
         // set default values
         epsilon = 0.1;
-        alpha = 0.9;
+        alpha = 1;
         gamma = 1;
         tau = 1;
 
@@ -54,6 +50,7 @@ public class Agent {
 
         results.getParentFile().mkdirs();
         results2.getParentFile().mkdirs();
+        results3.getParentFile().mkdirs();
 
     }
 
@@ -69,25 +66,40 @@ public class Agent {
         BufferedWriter out2 = new BufferedWriter(fstream2);
         out2.write("EpisodeNum" + "\t" + "Moves" + "\t" + "Total Reward" + "\n");
 
-        for( int i = 1 ; i <= iterations ; i++ ) {
+        FileWriter fstream3 = new FileWriter(results3);
+        BufferedWriter out3 = new BufferedWriter(fstream3);
+        out3.write("EpisodeNum" + "\t" + "Moves" + "\t" + "Total Reward" + "\n");
 
-            //if (i%100==0) epsilon = epsilon/2;   //decay the exploration
+
+        for( int i = 1 ; i <= iterations ; i++ ) {
+            //if(i % 25 == 0 && alpha < 1) setAlpha((alpha - 0.05));
+            //if(alpha < 0.8) setAlpha(0.8);
+            System.out.println("1: " + alpha);
             double[] res = runWithPotential();
             out.write(String.valueOf(i) + "\t" + String.valueOf((int)res[0]) + "\t" + String.valueOf(res[1]) + "\n");
-
         }
-        newPolicy();
-        setEpsilon(0.1);
-        for(int j = 1; j <= iterations; j++){
-            //Reset The Q values for 2nd trial
 
-            //if (j%100==0) epsilon = epsilon/2;   //decay the exploration
-            double[] res2 = runWithoutPotential();
-            out2.write(String.valueOf(j) + "\t" + String.valueOf((int)res2[0]) + "\t" + String.valueOf(res2[1]) + "\n");
+        newPolicy();
+        //setTau(1);
+        for( int i = 1 ; i <= iterations ; i++ ) {
+            //if(i % 25 == 0) setAlpha((alpha - alpha/4));
+            System.out.println("2: " + alpha);
+            double[] res = runWithPotential();
+            out2.write(String.valueOf(i) + "\t" + String.valueOf((int)res[0]) + "\t" + String.valueOf(res[1]) + "\n");
+        }
+
+        newPolicy();
+        //setTau(5);
+
+        for( int i = 1 ; i <= iterations ; i++ ) {
+            double[] res = runWithPotential();
+            out3.write(String.valueOf(i) + "\t" + String.valueOf((int)res[0]) + "\t" + String.valueOf(res[1]) + "\n");
+            System.out.println("3: " + alpha);
         }
 
         out.close();
         out2.close();
+        out3.close();
     }
 
     public double[] runWithPotential() {
@@ -138,7 +150,7 @@ public class Agent {
             max_Q = policy.getMaxQValue( newstate );
 
             // Q LEARNING FORMULA HERE
-            if(newManhattenDist>= 0){
+            if(newManhattenDist > 0){
                 ShapingReward = gamma*newPotentialFunc - potentialFunc;
                 new_Q = this_Q + alpha * ( reward + tau*ShapingReward + gamma * max_Q - this_Q);
 
@@ -155,8 +167,7 @@ public class Agent {
             potentialFunc = newPotentialFunc;
             movesMade++;
 
-            cumulativeReward += reward + ShapingReward;
-
+            cumulativeReward += (reward + ShapingReward);
         }
         toReturn[0] = movesMade;
         toReturn[1] = cumulativeReward;
@@ -165,7 +176,6 @@ public class Agent {
     }
 
     public double[] runWithoutPotential(){
-
         //Reset state to start point
         state = new int[]{0, 0};
         movesMade = 0;
@@ -256,12 +266,12 @@ public class Agent {
     }
 
     public void setAlpha( double a ) {
-        if( a >= 0 && a < 1 )
+        if( a >= 0 && a <= 1 )
             alpha = a;
     }
 
     public void setGamma( double g ) {
-        if( g > 0 && g < 1 )
+        if( g > 0 && g <= 1 )
             gamma = g;
     }
 
@@ -270,11 +280,20 @@ public class Agent {
     }
 
     public void setEpsilon( double e ) {
-        if( e > 0 && e < 1 )
+        if( e >= 0 && e < 1 )
             epsilon = e;
     }
     public double getEpsilon() {
         return epsilon;
+    }
+
+    public void setTau( double t ) {
+        if( t > 0 )
+            tau = t;
+    }
+
+    public double getTau() {
+        return tau;
     }
 
     //clear the policy

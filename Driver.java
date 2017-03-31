@@ -10,12 +10,9 @@ public class Driver {
 
         int[] dimensions = new int[]{50,50,4};
         int[] mazeExitPoint = new int[]{49,49};
-        //double[] reward1 = new double[]{5,5,0.05};       //xPos,yPos,rewardVal
 
         Maze rlMaze = new Maze(dimensions, mazeExitPoint);
         Agent rlAgent = new Agent(rlMaze);
-
-       //rlMaze.addReward(reward1);
 
         rlAgent.runTrial();
     }
